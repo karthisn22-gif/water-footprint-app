@@ -57,7 +57,7 @@ export const chatWithExpert = async (req, res) => {
 
     // Call Gemini using generateContent
     const response = await ai.models.generateContent({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-flash-latest',
       contents: contents,
       config: {
         systemInstruction: systemPrompt
