@@ -52,9 +52,16 @@ const WebcamCapture = ({ onCapture }) => {
       stopCamera(); // Stop any existing streams first
       
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ 
-          video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } } 
-        });
+        let stream;
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } } 
+          });
+        } catch (initialErr) {
+          console.log("Initial camera request failed, trying fallback...", initialErr);
+          // Fallback to any available camera if specific constraints fail (common on some phones)
+          stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        }
         
         // Add to global tracker immediately
         window.activeCameraStreams = window.activeCameraStreams || [];
