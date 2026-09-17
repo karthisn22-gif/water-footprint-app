@@ -296,8 +296,22 @@ const Home = () => {
         </div>
         {/* Action Button */}
         <button 
-          onClick={handleAnalyze} 
-          disabled={loading || (!location) || (inputMode === 'text' ? !cropText.trim() : !image)} 
+          onClick={() => {
+            if (!location) {
+              alert("Please enter or detect your location first.");
+              return;
+            }
+            if (inputMode === 'text' && !cropText.trim()) {
+              alert("Please enter a crop name.");
+              return;
+            }
+            if (inputMode !== 'text' && !image) {
+              alert("Please upload or capture an image first.");
+              return;
+            }
+            handleAnalyze();
+          }} 
+          disabled={loading} 
           className="btn-primary"
         >
           {loading ? <><Loader2 className="spinner" size={20} /> {inputMode === 'text' ? t('analyze') + '...' : t('uploading')}</> : t('analyze')}

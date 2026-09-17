@@ -338,6 +338,21 @@ body {
   gap: 40px;
 }
 
+@media (max-width: 768px) {
+  .calculator-card {
+    padding: 20px;
+    border-radius: 16px;
+    gap: 24px;
+    margin: 10px;
+    width: calc(100% - 20px);
+  }
+  
+  .title {
+    font-size: 1.4rem;
+    margin-bottom: 20px;
+  }
+}
+
 @media (min-width: 1024px) {
   .calculator-card.has-results {
     max-width: 1200px;
