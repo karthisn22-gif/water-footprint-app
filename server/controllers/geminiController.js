@@ -119,7 +119,7 @@ export const analyzeCrop = async (req, res) => {
       });
     }
 
-    const modelName = 'gemini-2.5-flash';
+    const modelName = 'gemini-3.6-flash';
     const maxRetries = 2;
     const retryDelayMs = 2000;
     

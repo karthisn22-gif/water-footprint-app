@@ -56,7 +56,7 @@ export const chatWithExpert = async (req, res) => {
     ];
 
     // Call Gemini using generateContent with retry logic
-    const modelName = 'gemini-2.5-flash';
+    const modelName = 'gemini-3.6-flash';
     const maxRetries = 2;
     const retryDelayMs = 2000;
     
