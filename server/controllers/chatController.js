@@ -55,14 +55,46 @@ export const chatWithExpert = async (req, res) => {
       { role: 'user', parts: [{ text: `User's question: ${message}` }] }
     ];
 
-    // Call Gemini using generateContent
-    const response = await ai.models.generateContent({
-      model: 'gemini-flash-latest',
-      contents: contents,
-      config: {
-        systemInstruction: systemPrompt
+    // Call Gemini using generateContent with retry logic
+    const modelName = 'gemini-2.5-flash';
+    const maxRetries = 2;
+    const retryDelayMs = 2000;
+    
+    let response;
+    let attempt = 0;
+    
+    while (attempt <= maxRetries) {
+      try {
+        response = await ai.models.generateContent({
+          model: modelName,
+          contents: contents,
+          config: {
+            systemInstruction: systemPrompt
+          }
+        });
+        break; // Success, exit retry loop
+      } catch (error) {
+        attempt++;
+        const is503 = error.status === 503 || error.message?.includes('503') || error.message?.includes('high demand');
+        
+        if (is503 && attempt <= maxRetries) {
+          console.warn(`[Retry ${attempt}/${maxRetries}] Model ${modelName} returned 503 High Demand. Retrying in ${retryDelayMs}ms...`);
+          await new Promise(resolve => setTimeout(resolve, retryDelayMs));
+        } else {
+          console.error(`Chat Error on model ${modelName}:`, error);
+
+          if (is503) {
+            return res.status(503).json({ message: `The AI model (${modelName}) is currently experiencing high demand. Please try again in a few moments.` });
+          }
+
+          if (error.status === 429 || error.message?.includes('429') || error.message?.includes('quota') || error.message?.includes('RESOURCE_EXHAUSTED')) {
+            return res.status(429).json({ message: 'You have reached the free-tier limit for AI requests. Please wait about a minute before trying again!' });
+          }
+
+          return res.status(500).json({ message: error.message || 'Error communicating with chat expert' });
+        }
       }
-    });
+    }
 
     const aiResponseText = response.text;
     
@@ -77,16 +109,8 @@ export const chatWithExpert = async (req, res) => {
 
     res.status(200).json(parsedData);
   } catch (error) {
-    console.error('Chat Error:', error);
-
-    if (error.status === 503 || error.message?.includes('503') || error.message?.includes('high demand')) {
-      return res.status(503).json({ message: 'The AI model is currently experiencing high demand and is temporarily unavailable. Please try again in a few moments.' });
-    }
-
-    if (error.status === 429 || error.message?.includes('429') || error.message?.includes('quota') || error.message?.includes('RESOURCE_EXHAUSTED')) {
-      return res.status(429).json({ message: 'You have reached the free-tier limit for AI requests. Please wait about a minute before trying again!' });
-    }
-
-    res.status(500).json({ message: error.message || 'Error communicating with chat expert' });
+    // Catch-all for non-Gemini errors before the loop
+    console.error('Unexpected Chat Error:', error);
+    res.status(500).json({ message: 'Unexpected error in chat controller' });
   }
 };
