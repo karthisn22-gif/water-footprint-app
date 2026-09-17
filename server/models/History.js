@@ -12,7 +12,7 @@ const historySchema = new mongoose.Schema({
   },
   imageUrl: {
     type: String, // Can be base64 string or URL
-    required: true
+    required: false
   },
   location: {
     type: String,
